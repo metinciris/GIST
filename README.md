@@ -2,6 +2,8 @@
 
 Bu depo, Excel tabanlı GIST raporlama dosyasının yerine geçmek üzere hazırlanmış statik React uygulamasıdır.
 
+https://metinciris.github.io/GIST/
+
 ## Özellikler
 
 - Biyopsi ve rezeksiyon için ayrı giriş ekranı
