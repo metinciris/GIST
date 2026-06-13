@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GIST Raporlama - CAP uyumlu statik React</title>
+  <meta name="description" content="Gastrointestinal Stromal Tümör (GIST) biyopsi ve rezeksiyon rapor şablonu" />
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #64748b;
+      --line: #dbe3ef;
+      --primary: #1f6feb;
+      --primary-2: #e8f1ff;
+      --ok: #0f766e;
+      --ok-bg: #e7f8f5;
+      --warn: #9a3412;
+      --warn-bg: #fff1e7;
+      --active: #dcfce7;
+      --active-line: #22c55e;
+      --danger: #b91c1c;
+      --shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #e8f1ff 0, transparent 34rem), var(--bg);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    header {
+      padding: 28px 20px 12px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+    .hero {
+      background: linear-gradient(135deg, #0f172a, #1f6feb);
+      color: white;
+      border-radius: 26px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(24px, 4vw, 42px); letter-spacing: -0.03em; }
+    .hero p { margin: 0; max-width: 950px; color: #dbeafe; }
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .tab {
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.12);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .tab.active { background: white; color: #0f172a; }
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 12px 20px 40px;
+      display: grid;
+      grid-template-columns: minmax(360px, 1.05fr) minmax(360px, .95fr);
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+    .stack { display: grid; gap: 14px; }
+    .card {
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card h2, .card h3 {
+      margin: 0;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .card h3 { font-size: 15px; background: #f8fafc; }
+    .section { padding: 14px 18px 18px; display: grid; gap: 13px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    label { display: grid; gap: 6px; font-weight: 700; font-size: 13px; color: #334155; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      border-radius: 12px;
+      padding: 10px 11px;
+      font: inherit;
+      outline: none;
+      transition: .15s ease;
+    }
+    textarea { min-height: 86px; resize: vertical; }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(31,111,235,.12); }
+    .filled input, .filled select, .filled textarea { background: var(--active); border-color: var(--active-line); }
+    .button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    button.choice, button.action {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+    button.choice:hover, button.action:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15,23,42,.08); }
+    button.choice.selected { background: var(--primary-2); border-color: var(--primary); color: #0f4fb6; }
+    button.choice.entered { background: var(--active); border-color: var(--active-line); color: #166534; }
+    button.action.primary { background: var(--primary); color: white; border-color: var(--primary); }
+    button.action.warn { background: var(--warn-bg); color: var(--warn); border-color: #fed7aa; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      border: 1px solid var(--line);
+      font-size: 12px;
+      font-weight: 800;
+      color: #334155;
+    }
+    .pill.ok { background: var(--ok-bg); color: var(--ok); border-color: #99f6e4; }
+    .pill.warn { background: var(--warn-bg); color: var(--warn); border-color: #fed7aa; }
+    .summary { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 16px; }
+    .report-panel { position: sticky; top: 14px; }
+    @media (max-width: 980px) { .report-panel { position: static; } }
+    .report-box {
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      background: #0b1220;
+      color: #e2e8f0;
+      padding: 18px;
+      border-radius: 0 0 var(--radius) var(--radius);
+      min-height: 600px;
+      overflow: auto;
+    }
+    .report-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: #f8fafc; }
+    .note { color: var(--muted); font-size: 12px; margin: 0; }
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .mini-table th, .mini-table td { border: 1px solid var(--line); padding: 6px; text-align: left; }
+    .mini-table th { background: #f8fafc; }
+    .danger { color: var(--danger); font-weight: 800; }
+    .footer-note { max-width: 1440px; margin: 0 auto; padding: 0 20px 32px; color: var(--muted); font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { useMemo, useState } = React;
+
+    const riskTable = {
+      gastric: {
+        label: "Mide",
+        low: [[2, "Yok (%0)"], [5, "Çok düşük risk (%1,9)"], [10, "Düşük risk (%3,6)"], [Infinity, "Orta risk (%12)"]],
+        high: [[2, "Yok"], [5, "Orta risk (%16)"], [10, "Yüksek risk (%55)"], [Infinity, "Yüksek risk (%86)"]]
+      },
+      duodenum: {
+        label: "Duodenum",
+        low: [[2, "Yok (%0)"], [5, "Düşük risk (%8,3)"], [10, "Yetersiz veri"], [Infinity, "Yüksek risk (%34)"]],
+        high: [[2, "Yetersiz veri"], [5, "Yüksek risk (%50)"], [10, "Yetersiz veri"], [Infinity, "Yüksek risk (%86)"]]
+      },
+      jejunumIleum: {
+        label: "Jejunum/İleum",
+        low: [[2, "Yok (%0)"], [5, "Düşük risk (%4,3)"], [10, "Orta risk (%24)"], [Infinity, "Yüksek risk (%52)"]],
+        high: [[2, "Yüksek risk"], [5, "Yüksek risk (%73)"], [10, "Yüksek risk (%85)"], [Infinity, "Yüksek risk (%90)"]]
+      },
+      rectum: {
+        label: "Rektum",
+        low: [[2, "Yok (%0)"], [5, "Düşük risk (%8,5)"], [10, "Yetersiz veri"], [Infinity, "Yüksek risk (%57)"]],
+        high: [[2, "Yüksek risk (%54)"], [5, "Yüksek risk (%52)"], [10, "Yetersiz veri"], [Infinity, "Yüksek risk (%71)"]]
+      },
+      other: {
+        label: "Diğer / tabloda olmayan",
+        useAs: "jejunumIleum"
+      }
+    };
+
+    const blank = {
+      mode: "resection",
+      associatedSyndrome: "Belirtilmedi",
+      treatment: "Bilinen tedavi yok",
+      procedure: "",
+      procedureDetail: "",
+      focality: "Unifokal",
+      tumorCount: "",
+      tumorSizes: "",
+      multiplePrimary: "Yok",
+      site: "gastric",
+      siteDetail: "",
+      histology: "Gastrointestinal stromal tümör, iğsi hücreli tip",
+      histologyComment: "",
+      size1: "",
+      size2: "",
+      size3: "",
+      sizeCannot: "",
+      mitoticRate: "",
+      mitoticCannot: "",
+      necrosis: "Saptanmadı",
+      necrosisPercent: "",
+      treatmentEffect: "Bilinen tedavi yok",
+      viablePercent: "",
+      margins: "Tüm cerrahi sınırlar negatif",
+      closestMargin: "",
+      marginDistance: "",
+      nodesStatus: "Bölgesel lenf nodu gönderilmemiş / bulunmamış",
+      nodesPositive: "",
+      nodesExamined: "",
+      metastasis: "Uygulanamaz",
+      metastasisSite: "",
+      modified: "",
+      multifocalSuffix: false,
+      kit: "Pozitif",
+      dog1: "Pozitif",
+      sdha: "",
+      sdhb: "",
+      braf: "",
+      molecular: "Yapılmadı",
+      molecularDetail: "",
+      additionalFindings: "",
+      comments: ""
+    };
+
+    const siteOptions = [
+      ["gastric", "Mide"], ["duodenum", "Duodenum"], ["jejunumIleum", "Jejunum/İleum"], ["rectum", "Rektum"], ["other", "Diğer"]
+    ];
+    const histologyOptions = ["Gastrointestinal stromal tümör, iğsi hücreli tip", "Gastrointestinal stromal tümör, epiteloid tip", "Gastrointestinal stromal tümör, mikst tip", "Gastrointestinal stromal tümör, diğer"];
+
+    function classFor(value) { return value !== undefined && value !== null && String(value).trim() !== "" ? "filled" : ""; }
+    function n(value) { const num = parseFloat(String(value).replace(",", ".")); return Number.isFinite(num) ? num : null; }
+    function maxSize(s) { return Math.max(...[n(s.size1), n(s.size2), n(s.size3)].filter(x => x !== null)); }
+    function getGreatestSize(s) {
+      if (s.sizeCannot) return null;
+      const vals = [n(s.size1), n(s.size2), n(s.size3)].filter(x => x !== null);
+      return vals.length ? Math.max(...vals) : null;
+    }
+    function grade(s) {
+      if (s.mitoticCannot) return "GX, değerlendirilemez";
+      const m = n(s.mitoticRate);
+      if (m === null) return "";
+      return m <= 5 ? "G1, düşük grade (mitotik oran ≤5/5 mm²)" : "G2, yüksek grade (mitotik oran >5/5 mm²)";
+    }
+    function pT(s) {
+      const size = getGreatestSize(s);
+      if (size === null) return "pT atanmadı";
+      const prefix = [s.modified].filter(Boolean).join("");
+      let t = size === 0 ? "pT0" : size <= 2 ? "pT1" : size <= 5 ? "pT2" : size <= 10 ? "pT3" : "pT4";
+      if (s.multifocalSuffix) t += "(m)";
+      return prefix + t;
+    }
+    function risk(s) {
+      const size = getGreatestSize(s);
+      if (size === null || s.mitoticCannot) return "Belirlenemedi";
+      const m = n(s.mitoticRate);
+      if (m === null) return "Belirlenemedi";
+      const key = s.site === "other" ? "jejunumIleum" : s.site;
+      const table = riskTable[key] || riskTable.gastric;
+      const band = m <= 5 ? table.low : table.high;
+      return band.find(([limit]) => size <= limit)?.[1] || "Belirlenemedi";
+    }
+    function riskNote(s) {
+      if (s.site === "other") return "Tabloda yer almayan anatomik yerleşimler için jejunum/ileum risk kriterleri kullanıldı.";
+      if (risk(s) === "Yetersiz veri") return "Bu kombinasyon için tabloda olgu sayısı az / veri yetersiz olarak belirtilmiştir.";
+      if (s.mode === "biopsy") return "Biyopsi materyalinde mitotik sıcak nokta örneklenmeyebileceğinden risk değerlendirmesi sınırlıdır.";
+      return "";
+    }
+    function line(label, value) { return value ? `${label}: ${value}` : ""; }
+    function formatDims(s) {
+      if (s.sizeCannot) return `Belirlenemedi (${s.sizeCannot})`;
+      const vals = [s.size1, s.size2, s.size3].filter(Boolean);
+      if (!vals.length) return "";
+      const greatest = getGreatestSize(s);
+      return `${greatest} cm${vals.length > 1 ? ` (${vals.join(" x ")} cm)` : ""}`;
+    }
+    function buildReport(s) {
+      const lines = [];
+      lines.push(`OLGU ÖZETİ: GASTROİNTESTİNAL STROMAL TÜMÖR (GİST) - ${s.mode === "biopsy" ? "Biyopsi" : "Rezeksiyon"}`);
+      lines.push("Standart: AJCC-UICC 8");
+      lines.push("");
+      lines.push("KLİNİK");
+      lines.push(line("İlişkili sendrom", s.associatedSyndrome));
+      lines.push(line(s.mode === "biopsy" ? "Biyopsi öncesi tedavi" : "Rezeksiyon öncesi tedavi", s.treatment));
+      lines.push("");
+      lines.push("SPESİMEN");
+      lines.push(line("Prosedür", [s.procedure, s.procedureDetail].filter(Boolean).join(" - ")));
+      lines.push("");
+      lines.push("TÜMÖR");
+      if (s.mode === "resection") {
+        lines.push(line("Tümör fokalitesi", s.focality));
+        if (s.focality === "Multifokal") lines.push(line("Tümör sayısı", s.tumorCount || "Belirtilmedi"));
+        lines.push(line("Multipl primer alan", s.multiplePrimary));
+      }
+      lines.push(line("Tümör yeri", `${riskTable[s.site]?.label || s.site}${s.siteDetail ? ` (${s.siteDetail})` : ""}`));
+      lines.push(line("Histolojik tip", s.histology));
+      lines.push(line("Histolojik tip yorumu", s.histologyComment));
+      lines.push(line("Tümör boyutu", formatDims(s)));
+      lines.push(line("Mitotik oran", s.mitoticCannot ? `Belirlenemedi (${s.mitoticCannot})` : (s.mitoticRate ? `${s.mitoticRate} mitoz / 5 mm²` : "")));
+      lines.push(line("Histolojik grade", grade(s)));
+      lines.push(line("Nekroz", s.necrosis + (s.necrosis === "Var" && s.necrosisPercent ? `, yaklaşık %${s.necrosisPercent}` : "")));
+      lines.push(line("Tedavi etkisi", s.treatmentEffect + (s.viablePercent ? `, canlı tümör yaklaşık %${s.viablePercent}` : "")));
+      lines.push(line("Risk değerlendirmesi", risk(s)));
+      lines.push(line("Risk notu", riskNote(s)));
+      if (s.mode === "resection") {
+        lines.push("");
+        lines.push("CERRAHİ SINIRLAR");
+        lines.push(line("Cerrahi sınır durumu", s.margins));
+        lines.push(line("GİST'e en yakın sınır", s.closestMargin));
+        lines.push(line("En yakın sınıra uzaklık", s.marginDistance));
+        lines.push("");
+        lines.push("BÖLGESEL LENF NODLARI");
+        lines.push(line("Lenf nodu durumu", s.nodesStatus));
+        lines.push(line("Tümör içeren lenf nodu sayısı", s.nodesPositive));
+        lines.push(line("İncelenen lenf nodu sayısı", s.nodesExamined));
+        lines.push("");
+        lines.push("UZAK METASTAZ");
+        lines.push(line("Uzak metastaz", s.metastasis + (s.metastasisSite ? ` (${s.metastasisSite})` : "")));
+        lines.push("");
+        lines.push("pTNM SINIFLAMASI");
+        lines.push(line("pT kategorisi", pT(s)));
+        if (s.nodesStatus.includes("negatif")) lines.push("pN kategorisi: pN0");
+        else if (s.nodesStatus.includes("Tümör var")) lines.push("pN kategorisi: pN1");
+        else lines.push("pN kategorisi: Atanmadı (nod yok / değerlendirilemedi)");
+        if (s.metastasis === "pM1") lines.push("pM kategorisi: pM1");
+        else lines.push("pM kategorisi: Uygulanamaz / patolojik olarak doğrulanmış uzak metastaz yok");
+      }
+      lines.push("");
+      lines.push("EK BULGULAR");
+      lines.push(line("Ek bulgular", s.additionalFindings));
+      lines.push("");
+      lines.push("ÖZEL ÇALIŞMALAR");
+      lines.push(line("KIT (CD117)", s.kit));
+      lines.push(line("DOG1 (ANO1)", s.dog1));
+      lines.push(line("SDHA", s.sdha));
+      lines.push(line("SDHB", s.sdhb));
+      lines.push(line("BRAF", s.braf));
+      lines.push(line("Moleküler genetik çalışmalar", s.molecular + (s.molecularDetail ? ` (${s.molecularDetail})` : "")));
+      lines.push("");
+      lines.push("YORUM");
+      lines.push(s.comments || "");
+      return lines.filter((x, i, arr) => x !== "" || arr[i-1] !== "").join("\n").trim();
+    }
+
+    function Field({label, value, children}) { return <label className={classFor(value)}><span>{label}</span>{children}</label>; }
+    function Choices({items, value, setValue}) {
+      return <div className="button-row">{items.map(item => <button key={item} className={`choice ${value === item ? "selected entered" : ""}`} onClick={() => setValue(item)} type="button">{item}</button>)}</div>;
+    }
+    function Section({title, children}) { return <div className="card"><h3>{title}</h3><div className="section">{children}</div></div>; }
+
+    function App() {
+      const [s, setS] = useState(blank);
+      const set = (key, value) => setS(prev => ({...prev, [key]: value}));
+      const changeMode = mode => setS(prev => ({...prev, mode, procedure: mode === "biopsy" ? "Endoskopik biyopsi" : "Rezeksiyon"}));
+      const report = useMemo(() => buildReport(s), [s]);
+      const filledCount = Object.values(s).filter(v => typeof v === "boolean" ? v : String(v || "").trim()).length;
+      const currentRisk = risk(s);
+      const currentGrade = grade(s);
+      const currentPt = pT(s);
+      const copyReport = async () => { await navigator.clipboard.writeText(report); alert("Rapor panoya kopyalandı."); };
+      const reset = () => { if (confirm("Tüm girişler temizlensin mi?")) setS(blank); };
+
+      return <>
+        <header>
+          <div className="hero">
+            <h1>GİST Raporlama</h1>
+            <p>Biyopsi ve rezeksiyon için ayrı giriş ekranı, tıklama ile veri girişi, otomatik grade/risk/pTNM hesaplama ve kopyalanabilir sinoptik rapor. Girilen alanlar yeşil arka planla vurgulanır.</p>
+            <div className="tabs">
+              <button className={`tab ${s.mode === "resection" ? "active" : ""}`} onClick={() => changeMode("resection")}>Rezeksiyon</button>
+              <button className={`tab ${s.mode === "biopsy" ? "active" : ""}`} onClick={() => changeMode("biopsy")}>Biyopsi</button>
+            </div>
+          </div>
+        </header>
+        <main>
+          <div className="stack">
+            <div className="card">
+              <h2>Hızlı özet</h2>
+              <div className="summary">
+                <span className="pill ok">Giriş yapılan alan: {filledCount}</span>
+                <span className="pill ok">Grade: {currentGrade || "-"}</span>
+                <span className={currentRisk === "Yetersiz veri" ? "pill warn" : "pill ok"}>Risk: {currentRisk}</span>
+                {s.mode === "resection" && <span className="pill ok">pT: {currentPt}</span>}
+              </div>
+            </div>
+
+            <Section title="Klinik ve spesimen">
+              <div className="grid-2">
+                <Field label="İlişkili sendrom" value={s.associatedSyndrome}><select value={s.associatedSyndrome} onChange={e => set("associatedSyndrome", e.target.value)}><option>Belirtilmedi</option><option>Carney triadı</option><option>Carney-Stratakis sendromu</option><option>Nörofibromatozis tip 1</option><option>Familyal GIST sendromu</option><option>Diğer</option></select></Field>
+                <Field label={s.mode === "biopsy" ? "Biyopsi öncesi tedavi" : "Rezeksiyon öncesi tedavi"} value={s.treatment}><select value={s.treatment} onChange={e => set("treatment", e.target.value)}><option>Bilinen tedavi yok</option><option>Önceki biyopsi / cerrahi</option><option>Sistemik tedavi uygulanmış</option><option>Tedavi uygulanmış, tipi belirtilmemiş</option><option>Belirtilmedi</option></select></Field>
+              </div>
+              <div>
+                <p className="note">Prosedür seçimi</p>
+                <Choices items={s.mode === "biopsy" ? ["Kor iğne biyopsi", "Endoskopik biyopsi", "İnce iğne aspirasyon biyopsisi", "Diğer", "Belirtilmedi"] : ["Lokal eksizyon", "Rezeksiyon", "Metastazektomi", "Diğer", "Belirtilmedi"]} value={s.procedure} setValue={v => set("procedure", v)} />
+              </div>
+              <Field label="Prosedür detayı" value={s.procedureDetail}><input value={s.procedureDetail} onChange={e => set("procedureDetail", e.target.value)} placeholder="Örn. parsiyel gastrektomi" /></Field>
+            </Section>
+
+            {s.mode === "resection" && <Section title="Rezeksiyon ek alanları">
+              <div><p className="note">Fokalite</p><Choices items={["Unifokal", "Multifokal"]} value={s.focality} setValue={v => set("focality", v)} /></div>
+              <div className="grid-3">
+                <Field label="Tümör sayısı" value={s.tumorCount}><input value={s.tumorCount} onChange={e => set("tumorCount", e.target.value)} /></Field>
+                <Field label="Tümör boyutları notu" value={s.tumorSizes}><input value={s.tumorSizes} onChange={e => set("tumorSizes", e.target.value)} /></Field>
+                <Field label="Multipl primer alan" value={s.multiplePrimary}><select value={s.multiplePrimary} onChange={e => set("multiplePrimary", e.target.value)}><option>Yok</option><option>Var</option><option>Belirlenemedi</option></select></Field>
+              </div>
+            </Section>}
+
+            <Section title="Tümör">
+              <div><p className="note">Tümör yeri</p><div className="button-row">{siteOptions.map(([key, label]) => <button key={key} type="button" className={`choice ${s.site === key ? "selected entered" : ""}`} onClick={() => set("site", key)}>{label}</button>)}</div></div>
+              <Field label="Yerleşim detayı" value={s.siteDetail}><input value={s.siteDetail} onChange={e => set("siteDetail", e.target.value)} placeholder="Örn. mide korpus, antrum, özofagogastrik bileşke" /></Field>
+              <div><p className="note">Histolojik tip</p><Choices items={histologyOptions} value={s.histology} setValue={v => set("histology", v)} /></div>
+              <Field label="Histolojik tip yorumu" value={s.histologyComment}><input value={s.histologyComment} onChange={e => set("histologyComment", e.target.value)} /></Field>
+              <div className="grid-3">
+                <Field label="Boyut 1 / en büyük cm" value={s.size1}><input type="number" step="0.1" value={s.size1} onChange={e => set("size1", e.target.value)} /></Field>
+                <Field label="Boyut 2 cm" value={s.size2}><input type="number" step="0.1" value={s.size2} onChange={e => set("size2", e.target.value)} /></Field>
+                <Field label="Boyut 3 cm" value={s.size3}><input type="number" step="0.1" value={s.size3} onChange={e => set("size3", e.target.value)} /></Field>
+              </div>
+              <Field label="Boyut belirlenemedi ise açıklama" value={s.sizeCannot}><input value={s.sizeCannot} onChange={e => set("sizeCannot", e.target.value)} /></Field>
+              <div className="grid-2">
+                <Field label="Mitotik oran / 5 mm²" value={s.mitoticRate}><input type="number" step="1" value={s.mitoticRate} onChange={e => set("mitoticRate", e.target.value)} /></Field>
+                <Field label="Mitotik oran belirlenemedi ise açıklama" value={s.mitoticCannot}><input value={s.mitoticCannot} onChange={e => set("mitoticCannot", e.target.value)} /></Field>
+              </div>
+              <div><p className="note">Nekroz</p><Choices items={["Saptanmadı", "Var", "Belirlenemedi"]} value={s.necrosis} setValue={v => set("necrosis", v)} /></div>
+              <Field label="Nekroz yüzdesi" value={s.necrosisPercent}><input type="number" value={s.necrosisPercent} onChange={e => set("necrosisPercent", e.target.value)} /></Field>
+              <div><p className="note">Tedavi etkisi</p><Choices items={["Bilinen tedavi yok", "Saptanmadı", "Var", "Belirlenemedi"]} value={s.treatmentEffect} setValue={v => set("treatmentEffect", v)} /></div>
+              <Field label="Canlı tümör yüzdesi" value={s.viablePercent}><input type="number" value={s.viablePercent} onChange={e => set("viablePercent", e.target.value)} /></Field>
+            </Section>
+
+            {s.mode === "resection" && <>
+              <Section title="Cerrahi sınırlar">
+                <Choices items={["Tüm cerrahi sınırlar negatif", "GIST cerrahi sınırda mevcut", "Uygulanamaz", "Belirlenemedi"]} value={s.margins} setValue={v => set("margins", v)} />
+                <div className="grid-2">
+                  <Field label="En yakın sınır" value={s.closestMargin}><input value={s.closestMargin} onChange={e => set("closestMargin", e.target.value)} placeholder="Proksimal, distal, omental/radyal, mukozal, derin..." /></Field>
+                  <Field label="Uzaklık" value={s.marginDistance}><input value={s.marginDistance} onChange={e => set("marginDistance", e.target.value)} placeholder="Örn. 0,4 cm / >1 cm / 5 mm" /></Field>
+                </div>
+              </Section>
+              <Section title="Lenf nodları, metastaz ve pTNM">
+                <Choices items={["Bölgesel lenf nodu gönderilmemiş / bulunmamış", "Tüm bölgesel lenf nodları negatif", "Tümör var", "Belirlenemedi"]} value={s.nodesStatus} setValue={v => set("nodesStatus", v)} />
+                <div className="grid-2">
+                  <Field label="Pozitif lenf nodu sayısı" value={s.nodesPositive}><input value={s.nodesPositive} onChange={e => set("nodesPositive", e.target.value)} /></Field>
+                  <Field label="İncelenen lenf nodu sayısı" value={s.nodesExamined}><input value={s.nodesExamined} onChange={e => set("nodesExamined", e.target.value)} /></Field>
+                </div>
+                <Choices items={["Uygulanamaz", "pM1", "Belirlenemedi"]} value={s.metastasis} setValue={v => set("metastasis", v)} />
+                <Field label="Metastaz yeri" value={s.metastasisSite}><input value={s.metastasisSite} onChange={e => set("metastasisSite", e.target.value)} placeholder="Karaciğer, periton..." /></Field>
+                <div className="grid-2">
+                  <Field label="Modifiye sınıflama" value={s.modified}><select value={s.modified} onChange={e => set("modified", e.target.value)}><option value="">Uygulanamaz</option><option value="y">y - neoadjuvan sonrası</option><option value="r">r - rekürrens</option></select></Field>
+                  <label><span>T suffix</span><button type="button" className={`choice ${s.multifocalSuffix ? "selected entered" : ""}`} onClick={() => set("multifocalSuffix", !s.multifocalSuffix)}>{s.multifocalSuffix ? "(m) eklendi" : "(m) ekle"}</button></label>
+                </div>
+              </Section>
+            </>}
+
+            <Section title="Özel çalışmalar">
+              <div className="grid-2">
+                {["kit", "dog1", "sdha", "sdhb", "braf"].map(k => <Field key={k} label={k === "kit" ? "KIT (CD117)" : k === "dog1" ? "DOG1 (ANO1)" : k.toUpperCase()} value={s[k]}><select value={s[k]} onChange={e => set(k, e.target.value)}><option value="">Seçilmedi</option><option>Pozitif</option><option>Negatif</option><option>İntakt</option><option>Defisiyent</option><option>Beklemede</option></select></Field>)}
+              </div>
+              <Field label="Moleküler genetik çalışmalar" value={s.molecular}><select value={s.molecular} onChange={e => set("molecular", e.target.value)}><option>Yapılmadı</option><option>Yapıldı, biyobelirteç raporuna bakınız</option><option>Yapıldı</option><option>Beklemede</option></select></Field>
+              <Field label="Moleküler detay" value={s.molecularDetail}><textarea value={s.molecularDetail} onChange={e => set("molecularDetail", e.target.value)} placeholder="KIT, PDGFRA, SDH A/B/C/D, NF1, BRAF, FGFR1 vb." /></Field>
+            </Section>
+
+            <Section title="Ek bulgular ve yorum">
+              <Field label="Ek bulgular" value={s.additionalFindings}><textarea value={s.additionalFindings} onChange={e => set("additionalFindings", e.target.value)} /></Field>
+              <Field label="Yorum" value={s.comments}><textarea value={s.comments} onChange={e => set("comments", e.target.value)} /></Field>
+            </Section>
+
+            <div className="card">
+              <h3>Risk tablosu hızlı kontrol</h3>
+              <div className="section">
+                <table className="mini-table"><thead><tr><th>Yerleşim</th><th>≤5 mitoz / 5 mm²</th><th>&gt;5 mitoz / 5 mm²</th></tr></thead><tbody>
+                  <tr><td>Mide</td><td>≤2 Yok, &gt;2-5 Çok düşük, &gt;5-10 Düşük, &gt;10 Orta</td><td>≤2 Yok, &gt;2-5 Orta, &gt;5-10 Yüksek, &gt;10 Yüksek</td></tr>
+                  <tr><td>Duodenum</td><td>Yok / Düşük / Yetersiz veri / Yüksek</td><td>Yetersiz veri / Yüksek / Yetersiz veri / Yüksek</td></tr>
+                  <tr><td>Jejunum-İleum</td><td>Yok / Düşük / Orta / Yüksek</td><td>Yüksek / Yüksek / Yüksek / Yüksek</td></tr>
+                  <tr><td>Rektum</td><td>Yok / Düşük / Yetersiz veri / Yüksek</td><td>Yüksek / Yüksek / Yetersiz veri / Yüksek</td></tr>
+                </tbody></table>
+                <p className="note"><span className="danger">Mide düzeltmesi:</span> ≤5 mitoz ve &gt;10 cm için orta risk %12 olarak kodlandı; eski %10 hatası kullanılmadı.</p>
+              </div>
+            </div>
+          </div>
+
+          <aside className="card report-panel">
+            <h2>Otomatik rapor</h2>
+            <div className="report-actions">
+              <button className="action primary" onClick={copyReport} type="button">Raporu kopyala</button>
+              <button className="action" onClick={() => window.print()} type="button">Yazdır</button>
+              <button className="action warn" onClick={reset} type="button">Temizle</button>
+            </div>
+            <div className="report-box">{report}</div>
+          </aside>
+        </main>
+        <div className="footer-note">Not: Bu araç klinik raporlamayı hızlandırmak için hazırlanmış yardımcı bir statik sayfadır. Nihai rapor ve yorum patoloğun değerlendirmesiyle oluşturulmalıdır.</div>
+      </>;
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

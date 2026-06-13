@@ -1,38 +1,25 @@
-# GIST
-CAP GİST Rapor Formatı
+# GIST Raporlama - Statik React
 
-Bu depoda, **CAP GİST Protokolüne uyumlu rapor formatı** olarak hazırladığımız Excel dosyası yer almaktadır. Raporlama sürecinizi kolaylaştırmak, gerekli bilgilerin girilmesi ve otomatik olarak risk değerlendirme sonuçlarının üretilmesi amacıyla oluşturulmuştur.
-
-![Ekran Görüntüsü](screen.png)
+Bu depo, Excel tabanlı GIST raporlama dosyasının yerine geçmek üzere hazırlanmış statik React uygulamasıdır.
 
 ## Özellikler
 
-- **Kullanım Kolaylığı:** Gerekli bilgileri girin veya mevcut seçeneklere tıklayın.
-- **Otomatik Rapor Oluşturma:** Girdiğiniz veriler doğrultusunda raporunuz otomatik olarak oluşturulur.
-- **Risk Değerlendirme:** Yerleşime göre otomatik risk değerlendirme sonuçları (Mide, Duodenum, Jejenum/İleum, Rektum) sunar.
-- **Çevrimiçi veya İndirilebilir:** Excel dosyasını kendi Drive’inize kopyalayarak online kullanım veya yerel olarak indirip kullanabilirsiniz.
-
-## Dosyalar
-
-- `GIST_Raporlama.xlsx`: CAP GİST protokolüne uygun olarak hazırlanmış Excel raporlama dosyası.
-- `screen.png`: Rapor formatının ekran görüntüsü.
+- Biyopsi ve rezeksiyon için ayrı giriş ekranı
+- Tıklama ile hızlı veri girişi
+- Girilen alanlarda yeşil arka plan vurgusu
+- Otomatik histolojik grade hesaplama
+- Otomatik GIST risk değerlendirmesi
+- Rezeksiyon için otomatik pT hesaplama
+- Kopyalanabilir sinoptik rapor
+- Tek dosyalı `index.html`; derleme gerekmez
 
 ## Kullanım
 
-1. **Dosyayı İndirin veya Kopyalayın:**  
-   - Dosyayı yerel bilgisayarınıza indirerek kullanabilir veya Drive’inize kopyalayarak çevrimiçi düzenleyebilirsiniz.
-2. **Gerekli Bilgileri Girin:**  
-   - Excel dosyasında bulunan gerekli alanları doldurun veya mevcut seçenekleri kullanın.
-3. **Otomatik Raporlama:**  
-   - Girdiğiniz veriler doğrultusunda, raporunuz otomatik olarak oluşturulacaktır.
+1. Bu depodaki eski Excel dosyası yerine `index.html` dosyasını yükleyin.
+2. GitHub Pages kullanacaksanız repository ayarlarından Pages bölümünde `main` branch ve root klasörünü seçin.
+3. Sayfa açıldığında biyopsi veya rezeksiyon sekmesini seçip alanları doldurun.
+4. Oluşan raporu `Raporu kopyala` butonu ile panoya alın.
 
-## Bağlantılar
+## Kaynak
 
-- **CAP GİST Protokolü:**  
-  [https://documents.cap.org/protocols/Stomach.GIST_4.3.0.0.REL_CAPCP.pdf](https://documents.cap.org/protocols/Stomach.GIST_4.3.0.0.REL_CAPCP.pdf)
-- **Google Spreadsheet Rapor Formatı:**  
-  [https://docs.google.com/spreadsheets/d/1bi4EVENYrw87fDdIVJ-_NUw7UoqcYm0KZnWMTPsPY-M/edit?gid=1415090610#gid=1415090610](https://docs.google.com/spreadsheets/d/1bi4EVENYrw87fDdIVJ-_NUw7UoqcYm0KZnWMTPsPY-M/edit?gid=1415090610#gid=1415090610)
-
-## Katkıda Bulunanlar
-
-Bu rapor formatı, raporlama sürecinizi kolaylaştırmak ve standartları yükseltmek amacıyla geliştirilmiştir. Her türlü öneri ve geri bildirim, projenin gelişimine katkıda bulunacaktır.
+CAP GIST biyopsi, rezeksiyon ve biyobelirteç protokolleri temel alınmıştır. Mide risk değerlendirmesinde güncel düzeltme kullanılmıştır: düşük mitoz ve >10 cm mide GIST için orta risk %12.
