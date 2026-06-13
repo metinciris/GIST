@@ -34,14 +34,14 @@
       jejunumIleum:{low:[[2,"Yok (%0)"],[5,"Düşük (%4,3)"],[10,"Orta (%24)"],[Infinity,"Yüksek (%52)"]],high:[[2,"Yüksek"],[5,"Yüksek (%73)"],[10,"Yüksek (%85)"],[Infinity,"Yüksek (%90)"]]},
       rectum:{low:[[2,"Yok (%0)"],[5,"Düşük (%8,5)"],[10,"Yetersiz veri"],[Infinity,"Yüksek (%57)"]],high:[[2,"Yüksek (%54)"],[5,"Yüksek (%52)"],[10,"Yetersiz veri"],[Infinity,"Yüksek (%71)"]]}
     };
-    const blank={mode:"resection",histology:"Gastrointestinal Stromal Tümör, mikst",size1:"",size2:"",size3:"",border:"İnfiltratif",focality:"Unifokal",site:"gastric",siteDetail:"",mitotic:"",necrosis:"Yok",treatmentEffect:"Bilinen cerrahi öncesi tedavi yok",margins:"Cerrahi sınırlarda tümör yoktur",marginExtra:"",nodes:"Bölgesel lenf nodu yoktur",gradeOverride:"",riskOverride:"",ptOverride:"",procedure:"",biopsyProcedure:"Endoskopik biyopsi",kit:"Pozitif",dog1:"Pozitif",sdha:"İntakt",sdhb:"İntakt",braf:"Negatif",cd34:"Pozitif",sma:"Yamalı pozitif",s100:"Negatif",ki67:"",diagnosisPrefix:"",comment:""};
+    const blank={mode:"resection",histology:"",size1:"",size2:"",size3:"",border:"",focality:"",site:"",siteDetail:"",mitotic:"",necrosis:"",treatmentEffect:"",margins:"",marginExtra:"",nodes:"",gradeOverride:"",riskOverride:"",ptOverride:"",procedure:"",biopsyProcedure:"",kit:"",dog1:"",sdha:"",sdhb:"",braf:"",cd34:"",sma:"",s100:"",ki67:"",diagnosisPrefix:"",comment:""};
     function num(v){const x=parseFloat(String(v).replace(",","."));return Number.isFinite(x)?x:null}
     function maxSize(s){const vals=[num(s.size1),num(s.size2),num(s.size3)].filter(v=>v!==null);return vals.length?Math.max(...vals):null}
     function fmtNum(v){return String(v??"").replace(".",",")}
     function fmtCm(v){return v===null||v===""?"":`${fmtNum(v)} cm`}
     function dims(s){return `${s.size1||""} x ${s.size2||""} x ${s.size3||""} cm`}
     function grade(s){if(s.gradeOverride)return s.gradeOverride; const m=num(s.mitotic); if(m===null)return ""; return m<=5?"G1; low grade":"G2; high grade"}
-    function risk(s){if(s.riskOverride)return s.riskOverride; const size=maxSize(s),m=num(s.mitotic); if(size===null||m===null)return ""; const key=s.site==="other"?"jejunumIleum":s.site; const band=m<=5?riskTable[key].low:riskTable[key].high; return band.find(([lim])=>size<=lim)?.[1]||""}
+    function risk(s){if(s.riskOverride)return s.riskOverride; const size=maxSize(s),m=num(s.mitotic); if(size===null||m===null)return ""; if(!s.site)return ""; const key=s.site==="other"?"jejunumIleum":s.site; const band=m<=5?riskTable[key].low:riskTable[key].high; return band.find(([lim])=>size<=lim)?.[1]||""}
     function pt(s){if(s.ptOverride)return s.ptOverride; const size=maxSize(s); if(size===null)return ""; if(size===0)return "pT0"; if(size<=2)return "pT1"; if(size<=5)return "pT2"; if(size<=10)return "pT3"; return "pT4"}
     function mitoticLine(s){return s.mitotic?`${fmtNum(s.mitotic)} mitoz/5mm2`:""}
     function reportLines(s){
@@ -54,7 +54,7 @@
       add("Tümör boyutları",dims(s));
       if(s.mode==="resection") add("Tümör sınırları",s.border);
       if(s.mode==="resection") add("Tümör odağı",s.focality);
-      add("Tümör yerleşimi",siteLabels[s.site]+(s.siteDetail?`, ${s.siteDetail}`:""));
+      add("Tümör yerleşimi",s.site ? siteLabels[s.site]+(s.siteDetail?`, ${s.siteDetail}`:"") : s.siteDetail);
       add("Mitotik oran",mitoticLine(s));
       add("Nekroz",s.necrosis);
       add("Tedavi etkisi",s.treatmentEffect);
@@ -72,7 +72,7 @@
     function Field({label,value,children}){return <label className={cls(value)}><span>{label}</span>{children}</label>}
     function Choices({items,value,setValue}){return <div className="buttonrow">{items.map(x=><button key={x} type="button" className={`choice ${value===x?"selected entered":""}`} onClick={()=>setValue(x)}>{x}</button>)}</div>}
     function Section({title,children}){return <div className="card"><h3>{title}</h3><div className="section">{children}</div></div>}
-    function App(){const [s,setS]=useState(blank); const set=(k,v)=>setS(p=>({...p,[k]:v})); const rep=useMemo(()=>reportLines(s),[s]); const copy=async()=>{await navigator.clipboard.writeText(rep); alert("Rapor panoya kopyalandı")}; const reset=()=>confirm("Tüm alanlar temizlensin mi?")&&setS(blank); const switchMode=m=>setS(p=>({...p,mode:m,treatmentEffect:m==="biopsy"?"Bilinen biyopsi öncesi tedavi yok":"Bilinen cerrahi öncesi tedavi yok"}));
+    function App(){const [s,setS]=useState(blank); const set=(k,v)=>setS(p=>({...p,[k]:v})); const rep=useMemo(()=>reportLines(s),[s]); const copy=async()=>{await navigator.clipboard.writeText(rep); alert("Rapor panoya kopyalandı")}; const reset=()=>confirm("Tüm alanlar temizlensin mi?")&&setS(blank); const switchMode=m=>setS({...blank,mode:m});
       return <>
         <header><div className="hero"><h1>GİST Raporlama</h1><p>Rezeksiyon ve biyopsi için ayrı giriş ekranı. Açıklama kalabalığı kaldırıldı; çıktı, doğrudan patoloji raporuna yapıştırılabilecek kısa satır formatında oluşur.</p><div className="tabs"><button className={`tab ${s.mode==="resection"?"active":""}`} onClick={()=>switchMode("resection")}>Rezeksiyon</button><button className={`tab ${s.mode==="biopsy"?"active":""}`} onClick={()=>switchMode("biopsy")}>Biyopsi</button></div></div></header>
         <main><div className="stack">
@@ -104,7 +104,7 @@
           </Section>
           <Section title="Yorum"><Field label="Yorum" value={s.comment}><textarea value={s.comment} onChange={e=>set("comment",e.target.value)} /></Field><p className="mini"><span className="danger">Kontrol:</span> 4 cm + 3 mitoz + mide seçilirse CAP risk tablosuna göre otomatik sonuç “Çok düşük (%1,9)” olur. “Orta (%12)” yalnızca mide, ≤5 mitoz ve &gt;10 cm grubunda üretilir.</p></Section>
         </div>
-        <aside className="card report"><h2>Rapor çıktısı</h2><div className="actions"><button type="button" className="action primary" onClick={copy}>Raporu kopyala</button><button type="button" className="action" onClick={()=>window.print()}>Yazdır</button><button type="button" className="action warn" onClick={reset}>Temizle</button></div><div className="reportbox"><span className="previewtitle">{s.mode==="resection"?"Rezeksiyon kısa raporu":"Biyopsi kısa raporu"}</span>{"\n\n"}{rep}</div></aside></main>
+        <aside className="card report"><h2>Rapor çıktısı</h2><div className="actions"><button type="button" className="action primary" onClick={copy}>Raporu kopyala</button><button type="button" className="action" onClick={()=>window.print()}>Yazdır</button><button type="button" className="action warn" onClick={reset}>Temizle</button></div><div className="reportbox"><span className="previewtitle">{s.mode==="resection"?"Rezeksiyon kısa raporu":"Biyopsi kısa raporu"}</span>{rep ? "\n\n" : ""}{rep}</div></aside></main>
         <div className="foot">Not: Otomatik risk/grade/pT hesapları yardımcı amaçlıdır; nihai rapor patoloğun kontrolüyle verilmelidir.</div>
       </>}
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);

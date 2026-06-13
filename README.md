@@ -1,15 +1,16 @@
 # GİST Raporlama
 
-Tek dosyalı statik React uygulaması. Biyopsi ve rezeksiyon için ayrı giriş ekranı, tıklama ile veri girişi ve kısa patoloji raporu çıktısı üretir.
+Statik React tabanlı GİST biyopsi ve rezeksiyon rapor oluşturucu.
 
 ## Kullanım
 
-1. `index.html` dosyasını GitHub repo ana dizinine koyun.
-2. GitHub Pages açın: Settings -> Pages -> Deploy from branch -> main / root.
-3. Sayfayı tarayıcıda açın.
-
-Derleme gerektirmez. React, ReactDOM ve Babel CDN üzerinden yüklenir.
+- `index.html` dosyasını doğrudan tarayıcıda açabilirsiniz.
+- GitHub Pages için repo ana dizinine `index.html` olarak yükleyebilirsiniz.
+- Sayfa ilk açıldığında tüm bilgi alanları boştur.
+- Sayfa yenilendiğinde bilgiler saklanmaz; tüm girişler sıfırlanır.
+- Giriş yapılan alanlar yeşil arka planla vurgulanır.
+- Rapor çıktısı kısa satır formatındadır ve panoya kopyalanabilir.
 
 ## Not
 
-Risk değerlendirmesi CAP GIST risk tablosuna göre otomatik hesaplanır. Tabloda yer almayan anatomik yerleşimler için jejunum/ileum kriterleri kullanılır.
+Otomatik grade, risk ve pT hesapları yardımcı amaçlıdır; nihai rapor patoloğun kontrolüyle verilmelidir.
