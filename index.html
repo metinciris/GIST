@@ -39,9 +39,9 @@
     function maxSize(s){const vals=[num(s.size1),num(s.size2),num(s.size3)].filter(v=>v!==null);return vals.length?Math.max(...vals):null}
     function fmtNum(v){return String(v??"").replace(".",",")}
     function fmtCm(v){return v===null||v===""?"":`${fmtNum(v)} cm`}
-    function dims(s){return `${s.size1||""} x ${s.size2||""} x ${s.size3||""} cm`}
+    function dims(s){const vals=[s.size1,s.size2,s.size3].map(v=>String(v||"").trim()).filter(Boolean).map(fmtNum); return vals.length?`${vals.join(" x ")} cm`:""}
     function grade(s){if(s.gradeOverride)return s.gradeOverride; const m=num(s.mitotic); if(m===null)return ""; return m<=5?"G1; low grade":"G2; high grade"}
-    function risk(s){if(s.riskOverride)return s.riskOverride; const size=maxSize(s),m=num(s.mitotic); if(size===null||m===null)return ""; if(!s.site)return ""; const key=s.site==="other"?"jejunumIleum":s.site; const band=m<=5?riskTable[key].low:riskTable[key].high; return band.find(([lim])=>size<=lim)?.[1]||""}
+    function risk(s){if(s.riskOverride)return s.riskOverride; const size=maxSize(s),m=num(s.mitotic); if(size===null||m===null||!s.site)return ""; const key=s.site==="other"?"jejunumIleum":s.site; const band=m<=5?riskTable[key].low:riskTable[key].high; return band.find(([lim])=>size<=lim)?.[1]||""}
     function pt(s){if(s.ptOverride)return s.ptOverride; const size=maxSize(s); if(size===null)return ""; if(size===0)return "pT0"; if(size<=2)return "pT1"; if(size<=5)return "pT2"; if(size<=10)return "pT3"; return "pT4"}
     function mitoticLine(s){return s.mitotic?`${fmtNum(s.mitotic)} mitoz/5mm2`:""}
     function reportLines(s){
@@ -54,7 +54,7 @@
       add("Tümör boyutları",dims(s));
       if(s.mode==="resection") add("Tümör sınırları",s.border);
       if(s.mode==="resection") add("Tümör odağı",s.focality);
-      add("Tümör yerleşimi",s.site ? siteLabels[s.site]+(s.siteDetail?`, ${s.siteDetail}`:"") : s.siteDetail);
+      add("Tümör yerleşimi",(siteLabels[s.site]||"")+(s.siteDetail?`${s.site?", ":""}${s.siteDetail}`:""));
       add("Mitotik oran",mitoticLine(s));
       add("Nekroz",s.necrosis);
       add("Tedavi etkisi",s.treatmentEffect);
@@ -83,7 +83,7 @@
             <div><p className="note">Histolojik tip</p><Choices items={["Gastrointestinal Stromal Tümör, iğsi hücreli","Gastrointestinal Stromal Tümör, epiteloid","Gastrointestinal Stromal Tümör, mikst","Gastrointestinal Stromal Tümör"]} value={s.histology} setValue={v=>set("histology",v)} /></div>
           </Section>
           <Section title="Tümör bilgileri">
-            <div className="grid3"><Field label="Boyut 1 / en büyük cm" value={s.size1}><input type="number" step="0.1" value={s.size1} onChange={e=>set("size1",e.target.value)} /></Field><Field label="Boyut 2 cm" value={s.size2}><input type="number" step="0.1" value={s.size2} onChange={e=>set("size2",e.target.value)} /></Field><Field label="Boyut 3 cm" value={s.size3}><input type="number" step="0.1" value={s.size3} onChange={e=>set("size3",e.target.value)} /></Field></div>
+            <div className="grid3"><Field label="Boyut 1 cm" value={s.size1}><input type="number" step="0.1" value={s.size1} onChange={e=>set("size1",e.target.value)} placeholder="Örn. 4" /></Field><Field label="Boyut 2 cm" value={s.size2}><input type="number" step="0.1" value={s.size2} onChange={e=>set("size2",e.target.value)} placeholder="İsteğe bağlı" /></Field><Field label="Boyut 3 cm" value={s.size3}><input type="number" step="0.1" value={s.size3} onChange={e=>set("size3",e.target.value)} placeholder="İsteğe bağlı" /></Field></div><p className="note">Üç boyut istenir; bir veya iki boyut girilirse yalnızca girilen boyutlar rapora yazılır. En büyük tümör boyutu otomatik hesaplanır.</p>
             {s.mode==="resection"&&<><p className="note">Tümör sınırları</p><Choices items={["İnfiltratif","İyi sınırlı","Ekspansil","Belirlenemedi"]} value={s.border} setValue={v=>set("border",v)} /><p className="note">Tümör odağı</p><Choices items={["Unifokal","Multifokal","Belirlenemedi"]} value={s.focality} setValue={v=>set("focality",v)} /></>}
             <p className="note">Tümör yerleşimi</p><div className="buttonrow">{Object.entries(siteLabels).map(([k,v])=><button key={k} type="button" className={`choice ${s.site===k?"selected entered":""}`} onClick={()=>set("site",k)}>{v}</button>)}</div>
             <Field label="Yerleşim detayı" value={s.siteDetail}><input value={s.siteDetail} onChange={e=>set("siteDetail",e.target.value)} placeholder="Örn. antrum, korpus, rektum anterior duvar" /></Field>
@@ -104,7 +104,7 @@
           </Section>
           <Section title="Yorum"><Field label="Yorum" value={s.comment}><textarea value={s.comment} onChange={e=>set("comment",e.target.value)} /></Field><p className="mini"><span className="danger">Kontrol:</span> 4 cm + 3 mitoz + mide seçilirse CAP risk tablosuna göre otomatik sonuç “Çok düşük (%1,9)” olur. “Orta (%12)” yalnızca mide, ≤5 mitoz ve &gt;10 cm grubunda üretilir.</p></Section>
         </div>
-        <aside className="card report"><h2>Rapor çıktısı</h2><div className="actions"><button type="button" className="action primary" onClick={copy}>Raporu kopyala</button><button type="button" className="action" onClick={()=>window.print()}>Yazdır</button><button type="button" className="action warn" onClick={reset}>Temizle</button></div><div className="reportbox"><span className="previewtitle">{s.mode==="resection"?"Rezeksiyon kısa raporu":"Biyopsi kısa raporu"}</span>{rep ? "\n\n" : ""}{rep}</div></aside></main>
+        <aside className="card report"><h2>Rapor çıktısı</h2><div className="actions"><button type="button" className="action primary" onClick={copy}>Raporu kopyala</button><button type="button" className="action" onClick={()=>window.print()}>Yazdır</button><button type="button" className="action warn" onClick={reset}>Temizle</button></div><div className="reportbox"><span className="previewtitle">{s.mode==="resection"?"Rezeksiyon kısa raporu":"Biyopsi kısa raporu"}</span>{"\n\n"}{rep}</div></aside></main>
         <div className="foot">Not: Otomatik risk/grade/pT hesapları yardımcı amaçlıdır; nihai rapor patoloğun kontrolüyle verilmelidir.</div>
       </>}
     ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
