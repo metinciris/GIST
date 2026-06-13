@@ -41,7 +41,17 @@
     function fmtCm(v){return v===null||v===""?"":`${fmtNum(v)} cm`}
     function dims(s){const vals=[s.size1,s.size2,s.size3].map(v=>String(v||"").trim()).filter(Boolean).map(fmtNum); return vals.length?`${vals.join(" x ")} cm`:""}
     function grade(s){if(s.gradeOverride)return s.gradeOverride; const m=num(s.mitotic); if(m===null)return ""; return m<=5?"G1; low grade":"G2; high grade"}
-    function risk(s){if(s.riskOverride)return s.riskOverride; const size=maxSize(s),m=num(s.mitotic); if(size===null||m===null||!s.site)return ""; const key=s.site==="other"?"jejunumIleum":s.site; const band=m<=5?riskTable[key].low:riskTable[key].high; return band.find(([lim])=>size<=lim)?.[1]||""}
+    function risk(s){
+      if(s.riskOverride)return s.riskOverride;
+      const size=maxSize(s),m=num(s.mitotic);
+      if(size===null||m===null||!s.site)return "";
+      const key=s.site==="other"?"jejunumIleum":s.site;
+      const mitosisBand=m<=5?"low":"high";
+      const direct=(riskTable[key][mitosisBand].find(([lim])=>size<=lim)?.[1]||"");
+      if(direct!=="Yetersiz veri") return direct;
+      const fallback=(riskTable.jejunumIleum[mitosisBand].find(([lim])=>size<=lim)?.[1]||"");
+      return fallback ? `CAP risk verisi bulunmuyor; Jejunum/İleum kriterine göre ${fallback}` : "CAP risk verisi bulunmuyor";
+    }
     function pt(s){if(s.ptOverride)return s.ptOverride; const size=maxSize(s); if(size===null)return ""; if(size===0)return "pT0"; if(size<=2)return "pT1"; if(size<=5)return "pT2"; if(size<=10)return "pT3"; return "pT4"}
     function mitoticLine(s){return s.mitotic?`${fmtNum(s.mitotic)} mitoz/5mm2`:""}
     function reportLines(s){

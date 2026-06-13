@@ -15,7 +15,7 @@ Derleme gerektirmez. React, ReactDOM ve Babel CDN üzerinden yüklenir.
 Risk değerlendirmesi CAP GIST risk tablosuna göre otomatik hesaplanır. Tabloda yer almayan anatomik yerleşimler için jejunum/ileum kriterleri kullanılır.
 
 
-## v4
+## v5
 - Açılışta ve temizlemede tüm alanlar boş gelir.
 - Tümör boyutları satırı, boyut girilmedikçe rapora eklenmez.
 - 1, 2 veya 3 boyut girilebilir; en büyük tümör boyutu otomatik bulunur.
