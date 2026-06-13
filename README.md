@@ -19,3 +19,8 @@ Risk değerlendirmesi CAP GIST risk tablosuna göre otomatik hesaplanır. Tablod
 - Açılışta ve temizlemede tüm alanlar boş gelir.
 - Tümör boyutları satırı, boyut girilmedikçe rapora eklenmez.
 - 1, 2 veya 3 boyut girilebilir; en büyük tümör boyutu otomatik bulunur.
+
+
+## v6
+- Boyut girişleri sayfa açılışında boş gelir; her alanın yanında sadece `cm` birimi görünür.
+- İmmünohistokimya alanlarında hazır seçenek butonları eklendi; alanlara serbest metin de yazılabilir.
